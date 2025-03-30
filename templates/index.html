@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Change Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Climate Change Prediction</h1>
+        <p>Enter the environmental data below to predict the Climate Change Index.</p>
+
+        <form action="/predict" method="post">
+            <label>Avg Temperature (°C):</label>
+            <input type="text" name="avg_temp" required>
+
+            <label>CO2 Emissions (Tons):</label>
+            <input type="text" name="co2" required>
+
+            <label>Traffic Density:</label>
+            <input type="text" name="traffic" required>
+
+            <label>Population Density:</label>
+            <input type="text" name="population" required>
+
+            <label>Urbanization Rate (%):</label>
+            <input type="text" name="urbanization" required>
+
+            <label>Green Cover (%):</label>
+            <input type="text" name="green_cover" required>
+
+            <button type="submit">Predict</button>
+        </form>
+
+        {% if prediction_text %}
+            <div class="result">{{ prediction_text }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>
