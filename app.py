@@ -1,14 +1,21 @@
+import os
 import pickle
 import numpy as np
 import pandas as pd
 from flask import Flask, request, render_template
 
-# Load trained model and scaler
-model = pickle.load(open("model.pkl", "rb"))
-scaler = pickle.load(open("scaler.pkl", "rb"))
-
 # Initialize Flask app
 app = Flask(__name__)
+
+# Load trained model and scaler safely
+model_path = "model.pkl"
+scaler_path = "scaler.pkl"
+
+if not os.path.exists(model_path) or not os.path.exists(scaler_path):
+    raise FileNotFoundError("❌ Model or scaler file not found!")
+
+model = pickle.load(open(model_path, "rb"))
+scaler = pickle.load(open(scaler_path, "rb"))
 
 @app.route("/")
 def home():
@@ -17,16 +24,19 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
-        # Get user input (excluding Region, Climate_Condition, and Year)
-        data = [float(request.form.get(key)) for key in [
-            "avg_temp", "co2", "traffic", "population", "urbanization", "green_cover"
-        ]]
+        # Extract input values safely
+        input_keys = ["avg_temp", "co2", "traffic", "population", "urbanization", "green_cover"]
+        data = []
 
-        # Convert input to DataFrame
-        df = pd.DataFrame([data])
+        for key in input_keys:
+            value = request.form.get(key)
+            if value is None or value.strip() == "":
+                return render_template("index.html", prediction_text=f"❌ Missing input: {key}")
 
-        # Scale input data
-        df_scaled = scaler.transform(df)
+            data.append(float(value))
+
+        # Convert input to DataFrame & scale it
+        df_scaled = scaler.transform(pd.DataFrame([data]))
 
         # Make prediction
         prediction = model.predict(df_scaled)[0]
@@ -37,4 +47,4 @@ def predict():
         return render_template("index.html", prediction_text=f"❌ Error: {str(e)}")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)  # Remove debug=True for production
